@@ -280,13 +280,15 @@ pub(crate) async fn start_api_proxy_with_runtime(
     let api_key = ensure_persisted_api_proxy_key(storage).await?;
     let shared_api_key = Arc::new(RwLock::new(api_key));
 
-    let client = reqwest::Client::builder()
-        .user_agent("codex-tools-proxy/0.1")
-        .timeout(std::time::Duration::from_secs(
-            DEFAULT_PROXY_UPSTREAM_TIMEOUT_SECS,
-        ))
-        .build()
-        .map_err(|error| format!("创建代理 HTTP 客户端失败: {error}"))?;
+    let proxy_config = {
+        let store = load_store_from_path(&account_store_path_from_data_dir(&storage.data_dir))?;
+        store.settings.outbound_proxy.clone()
+    };
+    let client = crate::utils::build_http_client(
+        "codex-tools-proxy/0.1",
+        Some(DEFAULT_PROXY_UPSTREAM_TIMEOUT_SECS),
+        &proxy_config,
+    )?;
 
     let shared = Arc::new(tokio::sync::Mutex::new(ApiProxyRuntimeSnapshot::default()));
     let context = Arc::new(ProxyContext {
@@ -1409,9 +1411,13 @@ async fn refresh_proxy_candidate_auth(
     storage: &ProxyStorageContext,
     candidate: &ProxyCandidate,
 ) -> Result<ProxyCandidate, String> {
+    let proxy_config = load_store_from_path(&account_store_path_from_data_dir(&storage.data_dir))
+        .map(|store| store.settings.outbound_proxy.clone())
+        .unwrap_or_default();
     let refreshed_auth_json = match refresh_chatgpt_auth_tokens_serialized(
         &candidate.auth_json,
         &storage.auth_refresh_lock,
+        &proxy_config,
     )
     .await
     {

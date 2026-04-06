@@ -174,3 +174,37 @@ fn push_command_candidates_from_dir(candidates: &mut Vec<PathBuf>, dir: &Path, c
         candidates.push(dir.join(command));
     }
 }
+
+use crate::models::OutboundProxyConfig;
+
+/// 根据代理配置构建 reqwest::Client
+pub(crate) fn build_http_client(
+    user_agent: &str,
+    timeout_secs: Option<u64>,
+    proxy_config: &OutboundProxyConfig,
+) -> Result<reqwest::Client, String> {
+    let mut builder = reqwest::Client::builder().user_agent(user_agent);
+
+    if let Some(timeout) = timeout_secs {
+        builder = builder.timeout(std::time::Duration::from_secs(timeout));
+    }
+
+    if proxy_config.enabled && !proxy_config.url.trim().is_empty() {
+        let proxy_url = proxy_config.url.trim();
+        let mut proxy = reqwest::Proxy::all(proxy_url)
+            .map_err(|e| format!("代理地址无效 \"{proxy_url}\": {e}"))?;
+
+        if let Some(no_proxy_str) = &proxy_config.no_proxy {
+            let no_proxy_trimmed = no_proxy_str.trim();
+            if !no_proxy_trimmed.is_empty() {
+                proxy = proxy.no_proxy(reqwest::NoProxy::from_string(no_proxy_trimmed));
+            }
+        }
+
+        builder = builder.proxy(proxy);
+    }
+
+    builder
+        .build()
+        .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))
+}

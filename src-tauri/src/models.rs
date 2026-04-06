@@ -312,6 +312,16 @@ pub(crate) struct InstalledEditorApp {
     pub(crate) label: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct OutboundProxyConfig {
+    pub(crate) enabled: bool,
+    /// 代理地址，例如 "http://127.0.0.1:7890" 或 "socks5://127.0.0.1:1080"
+    pub(crate) url: String,
+    /// 排除列表，逗号分隔，例如 "localhost,127.0.0.1"
+    pub(crate) no_proxy: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub(crate) struct AppSettings {
@@ -329,6 +339,8 @@ pub(crate) struct AppSettings {
     pub(crate) remote_servers: Vec<RemoteServerConfig>,
     pub(crate) api_proxy_api_key: Option<String>,
     pub(crate) locale: AppLocale,
+    #[serde(default)]
+    pub(crate) outbound_proxy: OutboundProxyConfig,
 }
 
 impl Default for AppSettings {
@@ -347,6 +359,7 @@ impl Default for AppSettings {
             remote_servers: Vec::new(),
             api_proxy_api_key: None,
             locale: AppLocale::default(),
+            outbound_proxy: OutboundProxyConfig::default(),
         }
     }
 }
@@ -366,6 +379,7 @@ pub(crate) struct AppSettingsPatch {
     pub(crate) api_proxy_port: Option<u16>,
     pub(crate) remote_servers: Option<Vec<RemoteServerConfig>>,
     pub(crate) locale: Option<AppLocale>,
+    pub(crate) outbound_proxy: Option<OutboundProxyConfig>,
 }
 
 impl StoredAccount {

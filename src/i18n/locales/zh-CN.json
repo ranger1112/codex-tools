@@ -334,6 +334,17 @@
       "openIssues": "反馈问题",
       "openReleases": "版本发布",
       "openChangelog": "更新日志"
+    },
+    "outboundProxy": {
+      "label": "出站代理",
+      "description": "为所有出站网络请求配置 HTTP 或 SOCKS5 代理",
+      "enabledLabel": "启用代理",
+      "enabledCheckedText": "已启用",
+      "enabledUncheckedText": "已禁用",
+      "urlLabel": "代理地址",
+      "urlPlaceholder": "http://127.0.0.1:7890 或 socks5://127.0.0.1:1080",
+      "noProxyLabel": "不代理（No Proxy）",
+      "noProxyPlaceholder": "localhost,127.0.0.1（逗号分隔）"
     }
   },
   "editorPicker": {

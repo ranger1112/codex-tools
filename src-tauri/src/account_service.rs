@@ -81,7 +81,10 @@ pub(crate) async fn import_current_auth_account_internal(
     label: Option<String>,
 ) -> Result<AccountSummary, String> {
     let auth_json = read_current_codex_auth()?;
-    let prepared = prepare_auth_json_import(auth_json, label).await?;
+    let proxy_config = load_store(app)
+        .map(|store| store.settings.outbound_proxy.clone())
+        .unwrap_or_default();
+    let prepared = prepare_auth_json_import(auth_json, label, &proxy_config).await?;
     commit_prepared_import(app, state, prepared).await
 }
 
@@ -93,6 +96,10 @@ pub(crate) async fn import_auth_json_accounts_internal(
     if items.is_empty() {
         return Err("请至少提供一个 JSON 文件或 JSON 文本".to_string());
     }
+
+    let proxy_config = load_store(app)
+        .map(|store| store.settings.outbound_proxy.clone())
+        .unwrap_or_default();
 
     let total_count = items.len();
     let mut prepared_imports = Vec::with_capacity(total_count);
@@ -108,7 +115,7 @@ pub(crate) async fn import_auth_json_accounts_internal(
             }
         };
 
-        match prepare_auth_json_import(auth_json, item.label).await {
+        match prepare_auth_json_import(auth_json, item.label, &proxy_config).await {
             Ok(prepared) => prepared_imports.push(prepared),
             Err(error) => failures.push(ImportAccountFailure { source, error }),
         }
@@ -287,11 +294,18 @@ pub(crate) async fn refresh_all_usage_internal(
         build_refresh_targets(store.accounts, current_auth_override.as_ref())
     };
 
+    let proxy_config = {
+        let _guard = state.store_lock.lock().await;
+        load_store(app)
+            .map(|store| store.settings.outbound_proxy.clone())
+            .unwrap_or_default()
+    };
+
     let mut outcomes: HashMap<String, RefreshOutcome> =
         HashMap::with_capacity(refresh_targets.len());
     for target in refresh_targets {
         let account_key = target.account_key.clone();
-        let outcome = refresh_usage_for_target(app, state, &target, force_auth_refresh).await;
+        let outcome = refresh_usage_for_target(app, state, &target, force_auth_refresh, &proxy_config).await;
         outcomes.insert(account_key, outcome);
     }
 
@@ -419,6 +433,7 @@ async fn refresh_usage_for_target(
     state: &AppState,
     target: &RefreshTarget,
     force_auth_refresh: bool,
+    proxy_config: &crate::models::OutboundProxyConfig,
 ) -> RefreshOutcome {
     let mut working_auth_json = target.auth_json.clone();
     let mut refresh_error: Option<String> = None;
@@ -430,7 +445,7 @@ async fn refresh_usage_for_target(
         && !auth_refresh_blocked
         && auth_tokens_expire_within(&working_auth_json, KEEPALIVE_REFRESH_WINDOW_SECS)
     {
-        match refresh_chatgpt_auth_tokens_serialized(&working_auth_json, &state.auth_refresh_lock)
+        match refresh_chatgpt_auth_tokens_serialized(&working_auth_json, &state.auth_refresh_lock, proxy_config)
             .await
         {
             Ok(refreshed) => {
@@ -468,12 +483,12 @@ async fn refresh_usage_for_target(
 
     let mut extracted = extract_auth(&working_auth_json);
     let mut fetch_result = match &extracted {
-        Ok(auth) => fetch_usage_snapshot(&auth.access_token, &auth.account_id).await,
+        Ok(auth) => fetch_usage_snapshot(&auth.access_token, &auth.account_id, proxy_config).await,
         Err(err) => Err(err.clone()),
     };
 
     if !auth_refresh_blocked && should_retry_with_token_refresh(&fetch_result) {
-        match refresh_chatgpt_auth_tokens_serialized(&working_auth_json, &state.auth_refresh_lock)
+        match refresh_chatgpt_auth_tokens_serialized(&working_auth_json, &state.auth_refresh_lock, proxy_config)
             .await
         {
             Ok(refreshed) => {
@@ -495,7 +510,7 @@ async fn refresh_usage_for_target(
                 }
                 extracted = extract_auth(&working_auth_json);
                 fetch_result = match &extracted {
-                    Ok(auth) => fetch_usage_snapshot(&auth.access_token, &auth.account_id).await,
+                    Ok(auth) => fetch_usage_snapshot(&auth.access_token, &auth.account_id, proxy_config).await,
                     Err(err) => Err(err.clone()),
                 };
             }
@@ -664,11 +679,12 @@ fn normalize_usage_error_message(raw_error: &str) -> String {
 async fn prepare_auth_json_import(
     auth_json: serde_json::Value,
     label: Option<String>,
+    proxy_config: &crate::models::OutboundProxyConfig,
 ) -> Result<PreparedImport, String> {
     let extracted = extract_auth(&auth_json)?;
 
     // 用量拉取失败不阻断导入流程，避免账号无法入库。
-    let usage = fetch_usage_snapshot(&extracted.access_token, &extracted.account_id)
+    let usage = fetch_usage_snapshot(&extracted.access_token, &extracted.account_id, proxy_config)
         .await
         .ok();
 

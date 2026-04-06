@@ -920,3 +920,26 @@ button.danger {
 .importSmartSwitch {
   min-width: 132px;
 }
+
+.settingInput {
+  width: 100%;
+  max-width: 340px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--input-bg, var(--surface));
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.settingInput:focus {
+  border-color: var(--accent);
+}
+
+.settingInput:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
