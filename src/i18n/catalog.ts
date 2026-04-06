@@ -300,6 +300,10 @@ export type MessageCatalog = {
     codexLaunchPath: {
       label: string;
     };
+    oauthCallbackPort: {
+      label: string;
+      inputAriaLabel: string;
+    };
     syncOpencode: {
       label: string;
       description: string;

@@ -204,6 +204,7 @@ export type AppSettings = {
   restartEditorTargets: EditorAppId[];
   autoStartApiProxy: boolean;
   apiProxyPort: number;
+  oauthCallbackPort: number;
   remoteServers: RemoteServerConfig[];
   locale: AppLocale;
 };

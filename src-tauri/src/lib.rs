@@ -641,7 +641,13 @@ async fn prepare_oauth_login(
 ) -> Result<PreparedOauthLogin, String> {
     let _oauth_guard = state.oauth_flow_lock.lock().await;
     stop_oauth_callback_listener(state.inner()).await;
-    let (listener, redirect_port) = bind_oauth_callback_listener(auth::oauth_redirect_port())?;
+    let preferred_port = {
+        let _guard = state.store_lock.lock().await;
+        store::load_store(&app)
+            .map(|s| s.settings.oauth_callback_port)
+            .unwrap_or_else(|_| auth::oauth_redirect_port())
+    };
+    let (listener, redirect_port) = bind_oauth_callback_listener(preferred_port)?;
     let (pending, prepared) = auth::prepare_oauth_login(redirect_port)?;
     {
         let mut guard = state.pending_oauth_login.lock().await;

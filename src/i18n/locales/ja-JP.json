@@ -289,6 +289,10 @@
     "codexLaunchPath": {
       "label": "Codex 起動パスを指定"
     },
+    "oauthCallbackPort": {
+      "label": "OAuthコールバックポート",
+      "inputAriaLabel": "OAuthコールバックポート"
+    },
     "syncOpencode": {
       "label": "Opencode OpenAI 認証を同期",
       "description": "切替時に opencode 認証ファイルを検出し、refresh/access を同期します。",
