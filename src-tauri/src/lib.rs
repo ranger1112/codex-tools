@@ -44,6 +44,7 @@ use models::EditorAppId;
 use models::ImportAccountsResult;
 use models::InstalledEditorApp;
 use models::OauthCallbackFinishedEvent;
+use models::OutboundProxyConfig;
 use models::PreparedOauthLogin;
 use models::RemoteProxyStatus;
 use models::RemoteServerConfig;
@@ -221,7 +222,12 @@ async fn complete_oauth_login_internal(
             .ok_or_else(|| "请先打开授权页面".to_string())?
     };
 
-    let auth_json = auth::complete_oauth_callback_login(&pending, callback_url).await?;
+    let proxy_config = {
+        let _guard = state.store_lock.lock().await;
+        store::load_store(app)?.settings.outbound_proxy
+    };
+    let auth_json =
+        auth::complete_oauth_callback_login(&pending, callback_url, proxy_config.as_ref()).await?;
     import_oauth_auth_json(app, state, auth_json, "oauth-callback").await
 }
 
@@ -757,6 +763,7 @@ async fn switch_account_and_launch(
         let refreshed_auth = match auth::refresh_chatgpt_auth_tokens_serialized(
             &account.auth_json,
             &state.auth_refresh_lock,
+            store.settings.outbound_proxy.as_ref(),
         )
         .await
         {

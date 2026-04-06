@@ -17,7 +17,9 @@ use time::OffsetDateTime;
 use tokio::sync::Mutex;
 
 use crate::models::ExtractedAuth;
+use crate::models::OutboundProxyConfig;
 use crate::models::PreparedOauthLogin;
+use crate::utils::build_http_client;
 use crate::utils::set_private_permissions;
 use crate::utils::truncate_for_error;
 
@@ -25,7 +27,7 @@ const DEFAULT_OAUTH_ISSUER: &str = "https://auth.openai.com";
 const DEFAULT_OAUTH_CLIENT_ID: &str = "app_EMoamEEZ73f0CkXaXp7hrann";
 const DEFAULT_OAUTH_SCOPE: &str = "openid profile email offline_access";
 const DEFAULT_OAUTH_ORIGINATOR: &str = "codex_vscode";
-const DEFAULT_OAUTH_REDIRECT_PORT: u16 = 1455;
+const DEFAULT_OAUTH_REDIRECT_PORT: u16 = 14550;
 const DEFAULT_OAUTH_TIMEOUT_SECS: i64 = 300;
 const NON_CHATGPT_AUTH_MODE_ERROR: &str =
     "当前账号不是 ChatGPT 登录模式，无法读取 Codex 5h/1week 用量。请先执行 codex login。";
@@ -137,6 +139,7 @@ pub(crate) fn prepare_oauth_login(
 pub(crate) async fn complete_oauth_callback_login(
     pending: &PendingOauthLogin,
     callback_url: &str,
+    proxy_config: Option<&OutboundProxyConfig>,
 ) -> Result<Value, String> {
     let callback_url = callback_url.trim();
     if callback_url.is_empty() {
@@ -168,7 +171,7 @@ pub(crate) async fn complete_oauth_callback_login(
         return Err("回调链接缺少 code 参数".to_string());
     };
 
-    exchange_authorization_code(code, pending).await
+    exchange_authorization_code(code, pending, proxy_config).await
 }
 
 pub(crate) fn normalize_imported_auth_json(auth_json: Value) -> Value {
@@ -438,7 +441,10 @@ pub(crate) fn auth_tokens_need_refresh(auth_json: &Value) -> bool {
 /// 使用 auth.json 内的 refresh_token 刷新 ChatGPT OAuth 令牌。
 ///
 /// 返回更新后的 auth.json（仅内存对象，不会自动写盘）。
-pub(crate) async fn refresh_chatgpt_auth_tokens(auth_json: &Value) -> Result<Value, String> {
+pub(crate) async fn refresh_chatgpt_auth_tokens(
+    auth_json: &Value,
+    proxy_config: Option<&OutboundProxyConfig>,
+) -> Result<Value, String> {
     let tokens = auth_token_object(auth_json).ok_or_else(|| "auth.json 缺少 tokens".to_string())?;
 
     let refresh_token = tokens
@@ -467,10 +473,7 @@ pub(crate) async fn refresh_chatgpt_auth_tokens(auth_json: &Value) -> Result<Val
         form_pairs.push(("client_id", client_id));
     }
 
-    let client = reqwest::Client::builder()
-        .user_agent("codex-tools/0.1")
-        .build()
-        .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))?;
+    let client = build_http_client("codex-tools/0.1", None, proxy_config)?;
 
     let response = client
         .post(&token_url)
@@ -524,9 +527,10 @@ pub(crate) async fn refresh_chatgpt_auth_tokens(auth_json: &Value) -> Result<Val
 pub(crate) async fn refresh_chatgpt_auth_tokens_serialized(
     auth_json: &Value,
     refresh_lock: &Arc<Mutex<()>>,
+    proxy_config: Option<&OutboundProxyConfig>,
 ) -> Result<Value, String> {
     let _guard = refresh_lock.lock().await;
-    refresh_chatgpt_auth_tokens(auth_json).await
+    refresh_chatgpt_auth_tokens(auth_json, proxy_config).await
 }
 
 fn parse_oauth_callback_url(callback_url: &str) -> Result<reqwest::Url, String> {
@@ -538,11 +542,9 @@ fn parse_oauth_callback_url(callback_url: &str) -> Result<reqwest::Url, String> 
 async fn exchange_authorization_code(
     code: &str,
     pending: &PendingOauthLogin,
+    proxy_config: Option<&OutboundProxyConfig>,
 ) -> Result<Value, String> {
-    let client = reqwest::Client::builder()
-        .user_agent("codex-tools/0.1")
-        .build()
-        .map_err(|error| format!("创建 HTTP 客户端失败: {error}"))?;
+    let client = build_http_client("codex-tools/0.1", None, proxy_config)?;
 
     let token_url = format!("{DEFAULT_OAUTH_ISSUER}/oauth/token");
     let response = client

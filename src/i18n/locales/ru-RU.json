@@ -334,6 +334,16 @@
       "openIssues": "Сообщить об issue",
       "openReleases": "Релизы",
       "openChangelog": "Журнал изменений"
+    },
+    "outboundProxy": {
+      "label": "Исходящий прокси",
+      "enabledLabel": "Включить прокси",
+      "enabledCheckedText": "Включён",
+      "enabledUncheckedText": "Отключён",
+      "urlLabel": "Адрес прокси",
+      "urlPlaceholder": "http://127.0.0.1:7890 или socks5://127.0.0.1:1080",
+      "noProxyLabel": "Исключения (No Proxy)",
+      "noProxyPlaceholder": "localhost,127.0.0.1"
     }
   },
   "editorPicker": {

@@ -346,6 +346,16 @@ export type MessageCatalog = {
       openReleases: string;
       openChangelog: string;
     };
+    outboundProxy: {
+      label: string;
+      enabledLabel: string;
+      enabledCheckedText: string;
+      enabledUncheckedText: string;
+      urlLabel: string;
+      urlPlaceholder: string;
+      noProxyLabel: string;
+      noProxyPlaceholder: string;
+    };
   };
   editorPicker: {
     ariaLabel: string;

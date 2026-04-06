@@ -287,6 +287,99 @@ export function SettingsPanel({
         </div>
 
         <div className="settingsGroup">
+          <SwitchField
+            checked={settings.outboundProxy?.enabled ?? false}
+            onChange={(checked) => {
+              onUpdateSettings({
+                outboundProxy: {
+                  enabled: checked,
+                  url: settings.outboundProxy?.url ?? "",
+                  noProxy: settings.outboundProxy?.noProxy ?? null,
+                },
+              });
+            }}
+            label={copy.settings.outboundProxy.label}
+            checkedText={copy.settings.outboundProxy.enabledCheckedText}
+            uncheckedText={copy.settings.outboundProxy.enabledUncheckedText}
+            disabled={savingSettings}
+          />
+
+          {settings.outboundProxy?.enabled ? (
+            <>
+              <div className="settingRow settingRowCompact settingRowNested">
+                <div className="settingMeta">
+                  <strong>{copy.settings.outboundProxy.urlLabel}</strong>
+                </div>
+                <div className="settingFieldGroup">
+                  <input
+                    type="text"
+                    value={settings.outboundProxy?.url ?? ""}
+                    placeholder={copy.settings.outboundProxy.urlPlaceholder}
+                    disabled={savingSettings}
+                    onChange={(event) => {
+                      onUpdateSettings(
+                        {
+                          outboundProxy: {
+                            enabled: settings.outboundProxy?.enabled ?? true,
+                            url: event.target.value,
+                            noProxy: settings.outboundProxy?.noProxy ?? null,
+                          },
+                        },
+                        { silent: true, keepInteractive: true },
+                      );
+                    }}
+                    onBlur={(event) => {
+                      onUpdateSettings({
+                        outboundProxy: {
+                          enabled: settings.outboundProxy?.enabled ?? true,
+                          url: event.target.value,
+                          noProxy: settings.outboundProxy?.noProxy ?? null,
+                        },
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="settingRow settingRowCompact settingRowNested">
+                <div className="settingMeta">
+                  <strong>{copy.settings.outboundProxy.noProxyLabel}</strong>
+                </div>
+                <div className="settingFieldGroup">
+                  <input
+                    type="text"
+                    value={settings.outboundProxy?.noProxy ?? ""}
+                    placeholder={copy.settings.outboundProxy.noProxyPlaceholder}
+                    disabled={savingSettings}
+                    onChange={(event) => {
+                      onUpdateSettings(
+                        {
+                          outboundProxy: {
+                            enabled: settings.outboundProxy?.enabled ?? true,
+                            url: settings.outboundProxy?.url ?? "",
+                            noProxy: event.target.value || null,
+                          },
+                        },
+                        { silent: true, keepInteractive: true },
+                      );
+                    }}
+                    onBlur={(event) => {
+                      onUpdateSettings({
+                        outboundProxy: {
+                          enabled: settings.outboundProxy?.enabled ?? true,
+                          url: settings.outboundProxy?.url ?? "",
+                          noProxy: event.target.value || null,
+                        },
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        <div className="settingsGroup">
           <div className="settingRow">
             <div className="settingMeta settingMetaInline">
               <strong>{copy.settings.projectInfo.versionLabel}</strong>

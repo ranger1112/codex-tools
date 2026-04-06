@@ -2,8 +2,10 @@ use serde::Deserialize;
 use std::error::Error as StdError;
 
 use crate::models::CreditSnapshot;
+use crate::models::OutboundProxyConfig;
 use crate::models::UsageSnapshot;
 use crate::models::UsageWindow;
+use crate::utils::build_http_client;
 use crate::utils::now_unix_seconds;
 use crate::utils::truncate_for_error;
 
@@ -48,14 +50,11 @@ struct CreditDetails {
 pub(crate) async fn fetch_usage_snapshot(
     access_token: &str,
     account_id: &str,
+    proxy_config: Option<&OutboundProxyConfig>,
 ) -> Result<UsageSnapshot, String> {
     let usage_urls = resolve_usage_urls();
 
-    let client = reqwest::Client::builder()
-        .user_agent("codex-tools/0.1")
-        .timeout(std::time::Duration::from_secs(18))
-        .build()
-        .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))?;
+    let client = build_http_client("codex-tools/0.1", Some(18), proxy_config)?;
 
     let mut errors: Vec<String> = Vec::new();
     for usage_url in usage_urls {

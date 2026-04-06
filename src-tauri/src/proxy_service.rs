@@ -40,6 +40,7 @@ use tauri::Manager;
 use crate::auth::extract_auth;
 use crate::auth::refresh_chatgpt_auth_tokens_serialized;
 use crate::models::ApiProxyStatus;
+use crate::models::OutboundProxyConfig;
 use crate::models::StoredAccount;
 use crate::models::UsageSnapshot;
 use crate::models::UsageWindow;
@@ -52,6 +53,7 @@ use crate::store::load_store_from_path;
 use crate::store::save_store_to_path;
 use crate::store::update_account_group_refresh_state_in_path;
 use crate::usage::resolve_chatgpt_base_origin;
+use crate::utils::build_http_client;
 use crate::utils::now_unix_seconds;
 use crate::utils::set_private_permissions;
 use crate::utils::truncate_for_error;
@@ -114,6 +116,7 @@ struct ProxyContext {
     upstream_base_url: String,
     client: reqwest::Client,
     shared: Arc<tokio::sync::Mutex<ApiProxyRuntimeSnapshot>>,
+    proxy_config: Option<OutboundProxyConfig>,
 }
 
 struct ApiProxyHandleState {
@@ -280,13 +283,19 @@ pub(crate) async fn start_api_proxy_with_runtime(
     let api_key = ensure_persisted_api_proxy_key(storage).await?;
     let shared_api_key = Arc::new(RwLock::new(api_key));
 
-    let client = reqwest::Client::builder()
-        .user_agent("codex-tools-proxy/0.1")
-        .timeout(std::time::Duration::from_secs(
-            DEFAULT_PROXY_UPSTREAM_TIMEOUT_SECS,
-        ))
-        .build()
-        .map_err(|error| format!("创建代理 HTTP 客户端失败: {error}"))?;
+    let proxy_config = {
+        let _guard = storage.store_lock.lock().await;
+        load_store_from_path(&account_store_path_from_data_dir(&storage.data_dir))
+            .ok()
+            .and_then(|store| store.settings.outbound_proxy)
+    };
+
+    let client = build_http_client(
+        "codex-tools-proxy/0.1",
+        Some(DEFAULT_PROXY_UPSTREAM_TIMEOUT_SECS),
+        proxy_config.as_ref(),
+    )
+    .map_err(|error| format!("创建代理 HTTP 客户端失败: {error}"))?;
 
     let shared = Arc::new(tokio::sync::Mutex::new(ApiProxyRuntimeSnapshot::default()));
     let context = Arc::new(ProxyContext {
@@ -295,6 +304,7 @@ pub(crate) async fn start_api_proxy_with_runtime(
         upstream_base_url: resolve_codex_upstream_base_url(),
         client,
         shared: shared.clone(),
+        proxy_config,
     });
     let request_body_limit = resolve_proxy_request_body_limit_bytes();
 
@@ -1189,7 +1199,12 @@ async fn send_codex_request_over_candidates(
                     ));
                     break;
                 }
-                match refresh_proxy_candidate_auth(&context.storage, &candidate).await {
+                match refresh_proxy_candidate_auth(
+                    &context.storage,
+                    &candidate,
+                    context.proxy_config.as_ref(),
+                )
+                .await {
                     Ok(refreshed_candidate) => {
                         candidate = refreshed_candidate;
                         did_refresh = true;
@@ -1408,10 +1423,12 @@ fn remaining_percent(window: Option<&UsageWindow>) -> i32 {
 async fn refresh_proxy_candidate_auth(
     storage: &ProxyStorageContext,
     candidate: &ProxyCandidate,
+    proxy_config: Option<&OutboundProxyConfig>,
 ) -> Result<ProxyCandidate, String> {
     let refreshed_auth_json = match refresh_chatgpt_auth_tokens_serialized(
         &candidate.auth_json,
         &storage.auth_refresh_lock,
+        proxy_config,
     )
     .await
     {

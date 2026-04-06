@@ -70,6 +70,9 @@ pub(crate) async fn update_app_settings_internal(
         if let Some(value) = patch.locale {
             store.settings.locale = value;
         }
+        if let Some(value) = patch.outbound_proxy {
+            store.settings.outbound_proxy = value;
+        }
 
         let settings = store.settings.clone();
         save_store(app, &store)?;
