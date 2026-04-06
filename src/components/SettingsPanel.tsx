@@ -302,10 +302,11 @@ export function SettingsPanel({
 
           <div className="settingRow settingRowCompact">
             <div className="settingMeta">
-              <strong>{copy.settings.outboundProxy.urlLabel}</strong>
+              <label htmlFor="outbound-proxy-url"><strong>{copy.settings.outboundProxy.urlLabel}</strong></label>
             </div>
             <div className="settingFieldGroup">
               <input
+                id="outbound-proxy-url"
                 className="settingInput"
                 type="text"
                 value={settings.outboundProxy.url}
@@ -328,10 +329,11 @@ export function SettingsPanel({
 
           <div className="settingRow settingRowCompact settingRowNested">
             <div className="settingMeta">
-              <strong>{copy.settings.outboundProxy.noProxyLabel}</strong>
+              <label htmlFor="outbound-proxy-no-proxy"><strong>{copy.settings.outboundProxy.noProxyLabel}</strong></label>
             </div>
             <div className="settingFieldGroup">
               <input
+                id="outbound-proxy-no-proxy"
                 className="settingInput"
                 type="text"
                 value={settings.outboundProxy.noProxy ?? ""}
