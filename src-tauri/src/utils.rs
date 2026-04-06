@@ -7,6 +7,8 @@ use std::process::Command;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 
+use crate::models::OutboundProxyConfig;
+
 pub(crate) fn now_unix_seconds() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -173,4 +175,35 @@ fn push_command_candidates_from_dir(candidates: &mut Vec<PathBuf>, dir: &Path, c
     {
         candidates.push(dir.join(command));
     }
+}
+
+/// Builds a `reqwest::Client` with the given user-agent, optional timeout, and optional outbound proxy.
+pub(crate) fn build_http_client(
+    user_agent: &str,
+    timeout_secs: Option<u64>,
+    proxy_config: Option<&OutboundProxyConfig>,
+) -> Result<reqwest::Client, String> {
+    let mut builder = reqwest::Client::builder().user_agent(user_agent);
+
+    if let Some(secs) = timeout_secs {
+        builder = builder.timeout(std::time::Duration::from_secs(secs));
+    }
+
+    if let Some(cfg) = proxy_config {
+        if cfg.enabled && !cfg.url.trim().is_empty() {
+            let mut proxy = reqwest::Proxy::all(cfg.url.trim())
+                .map_err(|e| format!("代理地址格式无效: {e}"))?;
+            if let Some(no_proxy) = cfg.no_proxy.as_deref() {
+                let trimmed = no_proxy.trim();
+                if !trimmed.is_empty() {
+                    proxy = proxy.no_proxy(reqwest::NoProxy::from_string(trimmed));
+                }
+            }
+            builder = builder.proxy(proxy);
+        }
+    }
+
+    builder
+        .build()
+        .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))
 }

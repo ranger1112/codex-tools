@@ -334,6 +334,16 @@
       "openIssues": "Issue を開く",
       "openReleases": "リリース",
       "openChangelog": "変更履歴"
+    },
+    "outboundProxy": {
+      "label": "アウトバウンドプロキシ",
+      "enabledLabel": "プロキシを有効化",
+      "enabledCheckedText": "有効",
+      "enabledUncheckedText": "無効",
+      "urlLabel": "プロキシ URL",
+      "urlPlaceholder": "http://127.0.0.1:7890 または socks5://127.0.0.1:1080",
+      "noProxyLabel": "プロキシ除外（No Proxy）",
+      "noProxyPlaceholder": "localhost,127.0.0.1"
     }
   },
   "editorPicker": {

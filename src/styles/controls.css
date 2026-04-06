@@ -554,6 +554,11 @@
   justify-items: end;
 }
 
+.settingFieldGroup input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .settingPathValue {
   width: 100%;
   color: var(--subtle);

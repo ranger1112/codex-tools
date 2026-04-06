@@ -334,6 +334,16 @@
       "openIssues": "이슈 제보",
       "openReleases": "릴리스",
       "openChangelog": "변경 로그"
+    },
+    "outboundProxy": {
+      "label": "아웃바운드 프록시",
+      "enabledLabel": "프록시 활성화",
+      "enabledCheckedText": "활성화",
+      "enabledUncheckedText": "비활성화",
+      "urlLabel": "프록시 주소",
+      "urlPlaceholder": "http://127.0.0.1:7890 또는 socks5://127.0.0.1:1080",
+      "noProxyLabel": "프록시 제외（No Proxy）",
+      "noProxyPlaceholder": "localhost,127.0.0.1"
     }
   },
   "editorPicker": {

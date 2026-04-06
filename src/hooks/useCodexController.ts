@@ -47,6 +47,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   apiProxyPort: 8787,
   remoteServers: [],
   locale: DEFAULT_LOCALE,
+  outboundProxy: null,
 };
 const DEFAULT_API_PROXY_STATUS: ApiProxyStatus = {
   running: false,

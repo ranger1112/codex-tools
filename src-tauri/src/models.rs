@@ -313,6 +313,14 @@ pub(crate) struct InstalledEditorApp {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct OutboundProxyConfig {
+    pub(crate) enabled: bool,
+    pub(crate) url: String,
+    pub(crate) no_proxy: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub(crate) struct AppSettings {
     pub(crate) launch_at_startup: bool,
@@ -329,6 +337,7 @@ pub(crate) struct AppSettings {
     pub(crate) remote_servers: Vec<RemoteServerConfig>,
     pub(crate) api_proxy_api_key: Option<String>,
     pub(crate) locale: AppLocale,
+    pub(crate) outbound_proxy: Option<OutboundProxyConfig>,
 }
 
 impl Default for AppSettings {
@@ -347,6 +356,7 @@ impl Default for AppSettings {
             remote_servers: Vec::new(),
             api_proxy_api_key: None,
             locale: AppLocale::default(),
+            outbound_proxy: None,
         }
     }
 }
@@ -366,6 +376,7 @@ pub(crate) struct AppSettingsPatch {
     pub(crate) api_proxy_port: Option<u16>,
     pub(crate) remote_servers: Option<Vec<RemoteServerConfig>>,
     pub(crate) locale: Option<AppLocale>,
+    pub(crate) outbound_proxy: Option<Option<OutboundProxyConfig>>,
 }
 
 impl StoredAccount {
