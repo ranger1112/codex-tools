@@ -58,6 +58,7 @@ export function SettingsPanel({
   const { copy, locale, localeOptions, setLocale } = useI18n();
   const [appVersion, setAppVersion] = useState<string | null>(null);
   const [pickingCodexLaunchPathKind, setPickingCodexLaunchPathKind] = useState<"file" | "directory" | null>(null);
+  const [oauthPortDraft, setOauthPortDraft] = useState<string | null>(null);
   const languageLabel = copy.topBar.languagePicker;
   const languageOptions = localeOptions.map((item) => ({
     id: item.code,
@@ -220,6 +221,34 @@ export function SettingsPanel({
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="settingRow">
+            <div className="settingMeta">
+              <strong>{copy.settings.oauthCallbackPort.label}</strong>
+            </div>
+            <input
+              className="proxyPortInput"
+              inputMode="numeric"
+              aria-label={copy.settings.oauthCallbackPort.inputAriaLabel}
+              placeholder="1455"
+              value={oauthPortDraft ?? String(settings.oauthCallbackPort)}
+              disabled={savingSettings}
+              onChange={(event) => setOauthPortDraft(event.target.value)}
+              onBlur={() => {
+                const raw = (oauthPortDraft ?? "").trim();
+                const parsed = Number.parseInt(raw, 10);
+                if (raw && Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535) {
+                  onUpdateSettings({ oauthCallbackPort: parsed });
+                }
+                setOauthPortDraft(null);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.currentTarget.blur();
+                }
+              }}
+            />
           </div>
 
           <SwitchField

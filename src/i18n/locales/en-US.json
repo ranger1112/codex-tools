@@ -289,6 +289,10 @@
     "codexLaunchPath": {
       "label": "Specify Codex launch path"
     },
+    "oauthCallbackPort": {
+      "label": "OAuth callback port",
+      "inputAriaLabel": "OAuth callback port"
+    },
     "syncOpencode": {
       "label": "Sync Opencode OpenAI auth",
       "description": "Auto-detect opencode auth file and sync refresh/access on switch.",

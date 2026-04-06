@@ -289,6 +289,10 @@
     "codexLaunchPath": {
       "label": "Указать путь запуска Codex"
     },
+    "oauthCallbackPort": {
+      "label": "Порт OAuth-коллбэка",
+      "inputAriaLabel": "Порт OAuth-коллбэка"
+    },
     "syncOpencode": {
       "label": "Синхронизировать Opencode OpenAI auth",
       "description": "При переключении автоматически находить auth-файл opencode и синхронизировать refresh/access.",

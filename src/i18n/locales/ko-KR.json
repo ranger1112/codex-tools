@@ -289,6 +289,10 @@
     "codexLaunchPath": {
       "label": "Codex 실행 경로 지정"
     },
+    "oauthCallbackPort": {
+      "label": "OAuth 콜백 포트",
+      "inputAriaLabel": "OAuth 콜백 포트"
+    },
     "syncOpencode": {
       "label": "Opencode OpenAI 인증 동기화",
       "description": "전환 시 opencode 인증 파일을 감지하고 refresh/access를 동기화합니다.",

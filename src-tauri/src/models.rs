@@ -12,6 +12,10 @@ fn default_api_proxy_port() -> u16 {
     8787
 }
 
+fn default_oauth_callback_port() -> u16 {
+    1455
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct AccountsStore {
     #[serde(default = "default_store_version")]
@@ -326,6 +330,8 @@ pub(crate) struct AppSettings {
     pub(crate) auto_start_api_proxy: bool,
     #[serde(default = "default_api_proxy_port")]
     pub(crate) api_proxy_port: u16,
+    #[serde(default = "default_oauth_callback_port")]
+    pub(crate) oauth_callback_port: u16,
     pub(crate) remote_servers: Vec<RemoteServerConfig>,
     pub(crate) api_proxy_api_key: Option<String>,
     pub(crate) locale: AppLocale,
@@ -344,6 +350,7 @@ impl Default for AppSettings {
             restart_editor_targets: Vec::new(),
             auto_start_api_proxy: false,
             api_proxy_port: default_api_proxy_port(),
+            oauth_callback_port: default_oauth_callback_port(),
             remote_servers: Vec::new(),
             api_proxy_api_key: None,
             locale: AppLocale::default(),
@@ -364,6 +371,7 @@ pub(crate) struct AppSettingsPatch {
     pub(crate) restart_editor_targets: Option<Vec<EditorAppId>>,
     pub(crate) auto_start_api_proxy: Option<bool>,
     pub(crate) api_proxy_port: Option<u16>,
+    pub(crate) oauth_callback_port: Option<u16>,
     pub(crate) remote_servers: Option<Vec<RemoteServerConfig>>,
     pub(crate) locale: Option<AppLocale>,
 }
