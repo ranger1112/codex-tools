@@ -287,6 +287,73 @@ export function SettingsPanel({
         </div>
 
         <div className="settingsGroup">
+          <SwitchField
+            checked={settings.outboundProxy.enabled}
+            onChange={(checked) =>
+              onUpdateSettings({
+                outboundProxy: { ...settings.outboundProxy, enabled: checked },
+              })
+            }
+            label={copy.settings.outboundProxy.enabledLabel}
+            checkedText={copy.settings.outboundProxy.enabledCheckedText}
+            uncheckedText={copy.settings.outboundProxy.enabledUncheckedText}
+            disabled={savingSettings}
+          />
+
+          <div className="settingRow settingRowCompact">
+            <div className="settingMeta">
+              <strong>{copy.settings.outboundProxy.urlLabel}</strong>
+            </div>
+            <div className="settingFieldGroup">
+              <input
+                className="settingInput"
+                type="text"
+                value={settings.outboundProxy.url}
+                placeholder={copy.settings.outboundProxy.urlPlaceholder}
+                disabled={savingSettings || !settings.outboundProxy.enabled}
+                onChange={(e) =>
+                  onUpdateSettings(
+                    { outboundProxy: { ...settings.outboundProxy, url: e.target.value } },
+                    { silent: true, keepInteractive: true },
+                  )
+                }
+                onBlur={() =>
+                  onUpdateSettings({
+                    outboundProxy: { ...settings.outboundProxy, url: settings.outboundProxy.url.trim() },
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="settingRow settingRowCompact settingRowNested">
+            <div className="settingMeta">
+              <strong>{copy.settings.outboundProxy.noProxyLabel}</strong>
+            </div>
+            <div className="settingFieldGroup">
+              <input
+                className="settingInput"
+                type="text"
+                value={settings.outboundProxy.noProxy ?? ""}
+                placeholder={copy.settings.outboundProxy.noProxyPlaceholder}
+                disabled={savingSettings || !settings.outboundProxy.enabled}
+                onChange={(e) =>
+                  onUpdateSettings(
+                    {
+                      outboundProxy: {
+                        ...settings.outboundProxy,
+                        noProxy: e.target.value || null,
+                      },
+                    },
+                    { silent: true, keepInteractive: true },
+                  )
+                }
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="settingsGroup">
           <div className="settingRow">
             <div className="settingMeta settingMetaInline">
               <strong>{copy.settings.projectInfo.versionLabel}</strong>

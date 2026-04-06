@@ -334,6 +334,17 @@
       "openIssues": "Issues",
       "openReleases": "Releases",
       "openChangelog": "Changelog"
+    },
+    "outboundProxy": {
+      "label": "Outbound Proxy",
+      "description": "Configure HTTP or SOCKS5 proxy for all outbound network requests",
+      "enabledLabel": "Enable Proxy",
+      "enabledCheckedText": "Enabled",
+      "enabledUncheckedText": "Disabled",
+      "urlLabel": "Proxy URL",
+      "urlPlaceholder": "http://127.0.0.1:7890 or socks5://127.0.0.1:1080",
+      "noProxyLabel": "No Proxy",
+      "noProxyPlaceholder": "localhost,127.0.0.1 (comma separated)"
     }
   },
   "editorPicker": {

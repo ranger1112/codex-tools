@@ -193,6 +193,12 @@ export type InstalledEditorApp = {
   label: string;
 };
 
+export type OutboundProxyConfig = {
+  enabled: boolean;
+  url: string;
+  noProxy: string | null;
+};
+
 export type AppSettings = {
   launchAtStartup: boolean;
   trayUsageDisplayMode: TrayUsageDisplayMode;
@@ -206,6 +212,7 @@ export type AppSettings = {
   apiProxyPort: number;
   remoteServers: RemoteServerConfig[];
   locale: AppLocale;
+  outboundProxy: OutboundProxyConfig;
 };
 
 export type UpdateSettingsOptions = {
