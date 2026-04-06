@@ -25,7 +25,7 @@ const DEFAULT_OAUTH_ISSUER: &str = "https://auth.openai.com";
 const DEFAULT_OAUTH_CLIENT_ID: &str = "app_EMoamEEZ73f0CkXaXp7hrann";
 const DEFAULT_OAUTH_SCOPE: &str = "openid profile email offline_access";
 const DEFAULT_OAUTH_ORIGINATOR: &str = "codex_vscode";
-const DEFAULT_OAUTH_REDIRECT_PORT: u16 = 1455;
+const DEFAULT_OAUTH_REDIRECT_PORT: u16 = 14550;
 const DEFAULT_OAUTH_TIMEOUT_SECS: i64 = 300;
 const NON_CHATGPT_AUTH_MODE_ERROR: &str =
     "当前账号不是 ChatGPT 登录模式，无法读取 Codex 5h/1week 用量。请先执行 codex login。";
